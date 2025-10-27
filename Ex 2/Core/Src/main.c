@@ -99,22 +99,35 @@ int main(void)
   // HAL method of interacting with pins
   void HAL_reading(){
 	  while(1){
-		  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET) // button pressed
+		  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET)		// button pressed
 		  {
-			  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // LED on
-		  }else{
-			  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); // else, LED off
+			  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);		// LED on
+		  }else
+		  {
+			  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);	// else, LED off
 		  }
 	  }
   }
 
   // CMSIS method of interacting with pins
   void CMSIS_reading(){
-	  if(((GPIO_PIN_13 & GPIOC->IDR) >> GPIO_IDR_ID13_Pos) !=1) // button pressed
+	  if(((GPIO_PIN_13 & GPIOC->IDR) >> GPIO_IDR_ID13_Pos) !=1)        		// button pressed
 	  {
-		  GPIOA->ODR |= GPIO_PIN_5; // LED on
-	  }else{
-		  GPIOA->ODR &= ~GPIO_PIN_5; // LED off
+		  GPIOA->ODR |= GPIO_PIN_5; 										// LED on
+	  }else
+	  {
+		  GPIOA->ODR &= ~GPIO_PIN_5; 										// else, LED off
+	  }
+  }
+
+  // direct register interaction with pins
+  void MEM_reading(){
+	  if(((*(int *) 0x40020810 & 0x2000) >> 13) !=1) 						// button pressed
+	  {
+		  *(int *) 0x40020014 |= 0x0020; 									// LED on
+	  }else
+	  {
+		  *(int *) 0x40020014 &= ~0x0020; 									// else, LED off
 	  }
   }
 
@@ -124,7 +137,8 @@ int main(void)
 
 	  //comment / un-comment to switch method
 	  //HAL_reading();
-	  CMSIS_reading();
+	  //CMSIS_reading();
+	  MEM_reading();
 
     /* USER CODE BEGIN 3 */
   }
