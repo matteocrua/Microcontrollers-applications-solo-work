@@ -131,6 +131,21 @@ int main(void)
 	  }
   }
 
+  // toggle on/off light function using CMSIS and edge detection
+  void toggle_LED(){
+	  static uint8_t prev_state = 1;	// previous button state, static retains the value of the prev state
+	  uint8_t current_state;			// current button state
+
+	  current_state = ((GPIO_PIN_13 & GPIOC->IDR) >> GPIO_IDR_ID13_Pos); // detect current state
+
+	  if(prev_state == 1 && current_state == 0) // if prev state is off (1) and current state is on (0)
+	  {
+	      GPIOA->ODR ^= GPIO_PIN_5; // XOR to flip the state the LED currently is in
+	  }
+
+	  prev_state = current_state; // store the current state as the previous
+  }
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -138,7 +153,8 @@ int main(void)
 	  //comment / un-comment to switch method
 	  //HAL_reading();
 	  //CMSIS_reading();
-	  MEM_reading();
+	  //MEM_reading();
+	  toggle_LED();
 
     /* USER CODE BEGIN 3 */
   }
