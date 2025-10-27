@@ -95,10 +95,24 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  // HAL method of interacting with pins
+  void HAL_reading(){
+	  while(1){
+		  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET) // button pressed
+		  {
+			  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // LED on
+		  }else{
+			  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); // else, LED off
+		  }
+	  }
+  }
+
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  //comment to switch method
+	  HAL_reading();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
