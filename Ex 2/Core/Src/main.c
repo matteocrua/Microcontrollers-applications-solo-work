@@ -108,11 +108,24 @@ int main(void)
 	  }
   }
 
+  // CMSIS method of interacting with pins
+  void CMSIS_reading(){
+	  if(((GPIO_PIN_13 & GPIOC->IDR) >> GPIO_IDR_ID13_Pos) !=1) // button pressed
+	  {
+		  GPIOA->ODR |= GPIO_PIN_5; // LED on
+	  }else{
+		  GPIOA->ODR &= ~GPIO_PIN_5; // LED off
+	  }
+  }
+
   while (1)
   {
     /* USER CODE END WHILE */
-	  //comment to switch method
-	  HAL_reading();
+
+	  //comment / un-comment to switch method
+	  //HAL_reading();
+	  CMSIS_reading();
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
