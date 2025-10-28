@@ -146,6 +146,22 @@ int main(void)
 	  prev_state = current_state; // store the current state as the previous
   }
 
+  void trailing_rise(){
+	  if(((GPIO_PIN_13 & GPIOC->IDR) >> GPIO_IDR_ID13_Pos) !=1)        		// button pressed
+	  	  {
+	  		  GPIOA->ODR |= GPIO_PIN_5;		// LED on
+	  		  HAL_Delay(250);
+	  		  GPIOA->ODR |= GPIO_PIN_12;	// PA12 on
+	  		  HAL_Delay(250);
+	  		  GPIOA->ODR |= GPIO_PIN_11;	// PA12 on
+	  		  HAL_Delay(250);
+	  		  GPIOB->ODR |= GPIO_PIN_12;	// PA12 on
+	  		  HAL_Delay(250);
+			  GPIOA->ODR &= ~(GPIO_PIN_5 | GPIO_PIN_12 | GPIO_PIN_14); // all off
+			  GPIOB->ODR &= ~(GPIO_PIN_12);
+	  	  }
+  }
+
   while (1)
   {
     /* USER CODE END WHILE */
@@ -154,7 +170,8 @@ int main(void)
 	  //HAL_reading();
 	  //CMSIS_reading();
 	  //MEM_reading();
-	  toggle_LED();
+	  //toggle_LED();
+	  trailing_rise();
 
     /* USER CODE BEGIN 3 */
   }
