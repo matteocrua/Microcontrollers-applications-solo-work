@@ -146,20 +146,31 @@ int main(void)
 	  prev_state = current_state; // store the current state as the previous
   }
 
+  // when button is pressed set PA5, PA12, PA11 and PB12 high with 250ms delay between, then turn all off
   void trailing_rise(){
-	  if(((GPIO_PIN_13 & GPIOC->IDR) >> GPIO_IDR_ID13_Pos) !=1)        		// button pressed
-	  	  {
-	  		  GPIOA->ODR |= GPIO_PIN_5;		// LED on
-	  		  HAL_Delay(250);
-	  		  GPIOA->ODR |= GPIO_PIN_12;	// PA12 on
-	  		  HAL_Delay(250);
-	  		  GPIOA->ODR |= GPIO_PIN_11;	// PA12 on
-	  		  HAL_Delay(250);
-	  		  GPIOB->ODR |= GPIO_PIN_12;	// PA12 on
-	  		  HAL_Delay(250);
-			  GPIOA->ODR &= ~(GPIO_PIN_5 | GPIO_PIN_12 | GPIO_PIN_14); // all off
-			  GPIOB->ODR &= ~(GPIO_PIN_12);
-	  	  }
+	  static uint8_t prev_state = 1;	// previous button state, static retains the value of the prev state
+	  uint8_t current_state;			// current button state
+
+	  current_state = ((GPIO_PIN_13 & GPIOC->IDR) >> GPIO_IDR_ID13_Pos); // detect current state
+
+	  // stops user from activating button press during process
+	  if(prev_state == 1 && current_state == 0) // if prev state is off (1) and current state is on (0)
+	  {
+		  GPIOA->ODR |= GPIO_PIN_5;		// LED on
+		  HAL_Delay(250);
+		  GPIOA->ODR |= GPIO_PIN_12;	// PA12 on
+		  HAL_Delay(250);
+		  GPIOA->ODR |= GPIO_PIN_11;	// PA11 on
+		  HAL_Delay(250);
+		  GPIOB->ODR |= GPIO_PIN_12;	// PB12 on
+		  HAL_Delay(250);
+
+		  // all off
+		  GPIOA->ODR &= ~(GPIO_PIN_5 | GPIO_PIN_12 | GPIO_PIN_11);
+		  GPIOB->ODR &= ~GPIO_PIN_12;
+	  }
+
+	  prev_state = current_state; // store the current state as the previous
   }
 
   while (1)
@@ -276,7 +287,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -284,12 +298,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin PA11 PA12 */
+  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_11|GPIO_PIN_12;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
