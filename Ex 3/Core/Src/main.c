@@ -59,7 +59,14 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void myDelay(int input){
+	  // delay
+	  int millis = 7000 * input;
 
+	  while(millis != 0){
+		  millis--;
+	  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -288,7 +295,9 @@ static void MX_GPIO_Init(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin == B1_Pin)
 	{
-		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);		// toggle the LED
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);		// LED on
+		myDelay(500);
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);		// LED off
 	}
 }
 
