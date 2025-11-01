@@ -45,7 +45,8 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint32_t LED_start_time = 0;
+uint8_t LED_flag = 0; // flag to initiate the non blocking delay
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -111,6 +112,14 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	if (LED_flag) // check if flag is true
+	{
+	  if (HAL_GetTick() - LED_start_time >= 500) // check if 500ms has passed
+	  {
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET); // LED off
+		LED_flag = 0; // reset the flag
+	  }
+	}
   }
   /* USER CODE END 3 */
 }
@@ -293,11 +302,11 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	if(GPIO_Pin == B1_Pin)
+	if(GPIO_Pin == B1_Pin) // if button pressed
 	{
-		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);		// LED on
-		myDelay(500);
-		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);		// LED off
+		HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET); // LED on
+		LED_start_time = HAL_GetTick(); // save the start time
+		LED_flag = 1; // set the flag
 	}
 }
 
