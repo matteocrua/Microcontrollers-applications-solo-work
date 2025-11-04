@@ -46,7 +46,9 @@ UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+unsigned int i;
+char hello[] = "hello_world! ";
+unsigned int leng = sizeof(hello) / sizeof(hello[0]);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -312,8 +314,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef  *htim)
 {
 	if(htim == &htim2)
 	{
-		uart_tx_buffer[0] = 'a';
-		HAL_UART_Transmit(&huart2, uart_tx_buffer, 1, HAL_MAX_DELAY);
+		for(i = 0; i < leng; ++i)
+		{
+			uart_tx_buffer[i] = hello[i];
+		}
+		HAL_UART_Transmit(&huart2, uart_tx_buffer, (leng-1), HAL_MAX_DELAY);
 	}
 }
 /* USER CODE END 4 */
