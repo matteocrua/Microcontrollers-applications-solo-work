@@ -48,7 +48,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 unsigned int i;
 char hello[] = "hello_world! ";
-unsigned int leng = sizeof(hello) / sizeof(hello[0]);
+// length of string
+unsigned int leng = sizeof(hello);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -310,14 +311,15 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef  *htim)
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim2)
 	{
-		for(i = 0; i < leng; ++i)
+		for(i = 0; i < leng; ++i) // run for the length of the string in 'hello[]'
 		{
-			uart_tx_buffer[i] = hello[i];
+			uart_tx_buffer[i] = hello[i]; // copy each character to the buffer list
 		}
+		// transmit the buffer, length - 1 to avoid '\0' flag
 		HAL_UART_Transmit(&huart2, uart_tx_buffer, (leng-1), HAL_MAX_DELAY);
 	}
 }
