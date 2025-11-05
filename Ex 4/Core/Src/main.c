@@ -102,6 +102,7 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_UART_Receive_IT(&huart2, uart_rx_buffer, 2); // interrupt on UART reception
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -321,6 +322,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 		// transmit the buffer, length - 1 to avoid '\0' flag
 		HAL_UART_Transmit(&huart2, uart_tx_buffer, (leng-1), HAL_MAX_DELAY);
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	// received data from UASRT2
+	if(huart == &huart2)
+	{
+		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);			// toggle LED
+		HAL_UART_Receive_IT(&huart2, uart_rx_buffer, 2);	// interrupt on UART reception
 	}
 }
 /* USER CODE END 4 */
