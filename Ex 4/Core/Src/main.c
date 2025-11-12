@@ -327,7 +327,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	// received data from UASRT2
+	// received data from USART2
 	if(huart == &huart2)
 	{
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);			// toggle LED
