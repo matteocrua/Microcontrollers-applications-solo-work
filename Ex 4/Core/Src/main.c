@@ -312,7 +312,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/*
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim2)
@@ -325,7 +325,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		HAL_UART_Transmit(&huart2, uart_tx_buffer, (leng-1), HAL_MAX_DELAY);
 	}
 }
-
+*/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	// received data from USART2
@@ -336,7 +336,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		HAL_UART_Receive_IT(&huart2, uart_rx_buffer, 1);	// interrupt on UART reception
 
 		HAL_UART_Transmit(&huart4, uart_rx_buffer, 1, HAL_MAX_DELAY); // transmit received data via UART4
-
 
 	}
 }
