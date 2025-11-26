@@ -102,7 +102,7 @@ int main(void)
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
-  HAL_UART_Receive_IT(&huart2, uart_rx_buffer, 2); // interrupt on UART reception
+  HAL_UART_Receive_IT(&huart2, uart_rx_buffer, 1); // interrupt on UART reception
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -312,6 +312,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim2)
@@ -331,12 +332,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	if(huart == &huart2)
 	{
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);			// toggle LED
-		HAL_UART_Receive_IT(&huart2, uart_rx_buffer, 2);	// interrupt on UART reception
+
+		HAL_UART_Receive_IT(&huart2, uart_rx_buffer, 1);	// interrupt on UART reception
+
+		HAL_UART_Transmit(&huart4, uart_rx_buffer, 1, HAL_MAX_DELAY); // transmit received data via UART4
+
+
 	}
 }
 /* USER CODE END 4 */
 
-/**
+/*
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
