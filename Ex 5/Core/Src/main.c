@@ -31,7 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define ADC_BUFFER_SIZE 3
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,7 +48,9 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint16_t adc_buffer[ADC_BUFFER_SIZE];
+float v_pot, v_IR1, v_IR2;
+uint8_t adc_conversion_complete_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,7 +103,8 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_ADC_Start_DMA(&hadc1, adc_buffer, ADC_BUFFER_SIZE);
+  HAL_TIM_Base_Start(&htim2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -109,7 +112,13 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  if(adc_conversion_complete_flag == 1)
+	  {
+		  adc_conversion_complete_flag = 0;
+		  v_pot = (3.3/4095)*(float)adc_buffer[0];
+		  v_IR1 = (3.3/4095)*(float)adc_buffer[1];
+		  v_IR2 = (3.3/4095)*(float)adc_buffer[2];
+	  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -364,7 +373,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+	adc_conversion_complete_flag = 1;
+	HAL_ADC_Start_DMA(&hadc1, adc_buffer, ADC_BUFFER_SIZE);
+}
 /* USER CODE END 4 */
 
 /**
