@@ -44,6 +44,7 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 unsigned int i;
+unsigned int Delay = 3500000;
 unsigned int tick_per_ms = 7000;
 int inp_delay = 500;
 /* USER CODE END PV */
@@ -98,6 +99,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
+  /*
   void myDelay(int input){
 	  // delay
 	  int millis = tick_per_ms * input;
@@ -106,6 +108,18 @@ int main(void)
 		  millis--;
 	  }
   }
+  */
+
+  void myDelay()
+  {
+	  // delay
+	  while(Delay-- >0)
+	  {
+		  __NOP(); // stop optimisation
+	  }
+	  Delay = 3500000;
+  }
+
 
   while (1)
   {
@@ -115,7 +129,8 @@ int main(void)
 	  }else{
 		  i++;
 	  }
-	  myDelay(inp_delay);
+	  //myDelay(inp_delay);
+	  myDelay();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
