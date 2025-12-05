@@ -66,7 +66,32 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void LED_POT()
+{
+	if(v_pot >= 0.8)
+	{
+		GPIOB->ODR |= GPIO_PIN_10;
 
+		if(v_pot >= 1.6)
+		{
+			GPIOB->ODR |= GPIO_PIN_4;
+
+			if(v_pot >= 2.4)
+			{
+				GPIOB->ODR |= GPIO_PIN_5;
+
+				if(v_pot >= 3.2)
+				{
+					GPIOA->ODR |= GPIO_PIN_10;
+
+				}else GPIOA->ODR &= ~GPIO_PIN_10;
+
+			}GPIOB->ODR &= ~GPIO_PIN_5;
+
+		}GPIOB->ODR &= ~GPIO_PIN_4;
+
+	}GPIOB->ODR &= ~GPIO_PIN_10;
+}
 /* USER CODE END 0 */
 
 /**
@@ -118,7 +143,9 @@ int main(void)
 		  v_pot = (3.3/4095)*(float)adc_buffer[0];
 		  v_IR1 = (3.3/4095)*(float)adc_buffer[1];
 		  v_IR2 = (3.3/4095)*(float)adc_buffer[2];
+
 	  }
+	  LED_POT();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -353,7 +380,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_10, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10|GPIO_PIN_4|GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -361,12 +391,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin PA10 */
+  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_10;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB10 PB4 PB5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_4|GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
