@@ -70,27 +70,32 @@ void LED_POT()
 {
 	if(v_pot >= 0.8)
 	{
+		// if voltage > 0.8v  LED1 on
 		GPIOB->ODR |= GPIO_PIN_10;
 
 		if(v_pot >= 1.6)
 		{
+			// if voltage > 1.6v  LED2 on
 			GPIOB->ODR |= GPIO_PIN_4;
 
 			if(v_pot >= 2.4)
 			{
+				// if voltage > 2.4v  LED3 on
 				GPIOB->ODR |= GPIO_PIN_5;
 
 				if(v_pot >= 3.2)
 				{
+					// if voltage > 3.2v  LED4 on
 					GPIOA->ODR |= GPIO_PIN_10;
 
+//-------------- else corresponding led is off ----------------------//
 				}else GPIOA->ODR &= ~GPIO_PIN_10;
 
-			}GPIOB->ODR &= ~GPIO_PIN_5;
+			}else GPIOB->ODR &= ~GPIO_PIN_5;
 
-		}GPIOB->ODR &= ~GPIO_PIN_4;
+		}else GPIOB->ODR &= ~GPIO_PIN_4;
 
-	}GPIOB->ODR &= ~GPIO_PIN_10;
+	}else GPIOB->ODR &= ~GPIO_PIN_10;
 }
 /* USER CODE END 0 */
 
