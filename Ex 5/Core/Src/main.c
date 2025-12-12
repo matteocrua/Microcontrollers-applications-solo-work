@@ -18,7 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include <stdio.h>
+#include <string.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -66,8 +67,11 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint8_t uart_tx_buffer[100];
+
 void LED_POT()
 {
+
 	if(v_pot >= 0.8)
 	{
 		// if voltage > 0.8v  LED1 on
@@ -96,6 +100,12 @@ void LED_POT()
 		}else GPIOB->ODR &= ~GPIO_PIN_4;
 
 	}else GPIOB->ODR &= ~GPIO_PIN_10;
+
+	sprintf(uart_tx_buffer, "V1: %d, V2: %d, V3: %d\n",
+			adc_buffer[0],adc_buffer[1],adc_buffer[2]);
+
+	HAL_UART_Transmit(&huart2, uart_tx_buffer,
+			strlen(uart_tx_buffer), HAL_MAX_DELAY);
 }
 /* USER CODE END 0 */
 
@@ -142,16 +152,16 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  if(adc_conversion_complete_flag == 1)
-	  {
-		  adc_conversion_complete_flag = 0;
-		  v_pot = (3.3/4095)*(float)adc_buffer[0];
-		  v_IR1 = (3.3/4095)*(float)adc_buffer[1];
-		  v_IR2 = (3.3/4095)*(float)adc_buffer[2];
 
-	  }
-	  LED_POT();
     /* USER CODE BEGIN 3 */
+	if(adc_conversion_complete_flag == 1)
+	{
+	  adc_conversion_complete_flag = 0;
+	  v_pot = (3.3/4095)*(float)adc_buffer[0];
+	  v_IR1 = (3.3/4095)*(float)adc_buffer[1];
+	  v_IR2 = (3.3/4095)*(float)adc_buffer[2];
+	}
+	LED_POT();
   }
   /* USER CODE END 3 */
 }
@@ -420,6 +430,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 	adc_conversion_complete_flag = 1;
 	HAL_ADC_Start_DMA(&hadc1, adc_buffer, ADC_BUFFER_SIZE);
 }
+
+
 /* USER CODE END 4 */
 
 /**
