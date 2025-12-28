@@ -365,7 +365,19 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim == &htim2)
+	{
+		// Sample IMU (read 6 bytes starting from OUTX_L_A)
+		HAL_I2C_Mem_Read_DMA(&hi2c1, LSM6DSO_ADDRESS, OUTX_L_A, I2C_MEMADD_SIZE_8BIT, i2c_buffer, SIZE_I2C_BUFFER);
+	}
+}
 
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	i2c_sample_complete = 1; // set flag to indicate DMA transfer complete
+}
 /* USER CODE END 4 */
 
 /**
