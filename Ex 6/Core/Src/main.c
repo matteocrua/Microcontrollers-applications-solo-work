@@ -109,13 +109,42 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  // Set accelerometer sample rate to 1.667 KHz and sensitivity to +/-2g
+  i2c_buffer[0] = 0b10000000;
+  if(HAL_I2C_Mem_Write(&hi2c1, LSM6DSO_ADDRESS, CTRL1_XL, 1, i2c_buffer, 1, HAL_MAX_DELAY) != HAL_OK)
+  {
+	  strcpy((char*)uart_tx_buffer, "Error Tx \n"); // report error via UART
+  }else
+  {
+	  strcpy((char*)uart_tx_buffer, "Acc sample rate set \n");
+  }
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_tx_buffer, strlen((const char*)uart_tx_buffer), HAL_MAX_DELAY);
 
+
+  // Set gyroscope sample rate at 1.667 KHz and sensitivity to +/-250dps
+  if(HAL_I2C_Mem_Write(&hi2c1, LSM6DSO_ADDRESS, CTRL2_G, 1, i2c_buffer, 1, HAL_MAX_DELAY) != HAL_OK)
+  {
+	  strcpy((char*)uart_tx_buffer, "Error Tx \n"); // report error via UART
+  }else
+  {
+	  strcpy((char*)uart_tx_buffer, "Gyro sample rate set \n");
+  }
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_tx_buffer, strlen((const char*)uart_tx_buffer), HAL_MAX_DELAY);
+
+  HAL_TIM_Base_Start_IT(&htim2); // start timer to generate regular sampling from imu
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  while(i2c_sample_complete == 0){};
+	  i2c_sample_complete = 0;
+	  convert_accelerations(i2c_buffer);
+
+	  sprintf(uart_tx_buffer, "X:%4.2f, Y:$4.2f, Z:$4.2f \n", acceleration[0], acceleration[1], acceleration[2]);
+
+	  HAL_UART_Transmit(&huart2, (uint8_t*)uart_tx_buffer, strlen((const char*)uart_tx_buffer), HAL_MAX_DELAY);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
