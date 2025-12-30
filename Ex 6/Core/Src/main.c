@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,14 +50,14 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-static const uint8_t LSM6DSO_ADDRESS = 0x6A << 1;
-static const uint8_t CTRL1_XL		 = 0x10;
-static const uint8_t CTRL2_G         = 0x11;
-static const uint8_t OUTX_L_A        = 0x28;
-uint8_t i2c_buffer[SIZE_I2C_BUFFER];
-uint8_t uart_tx_buffer[SIZE_UART_TX_BUFFER];
-float acceleration[3];
-uint8_t i2c_sample_complete = 0;
+static const uint8_t LSM6DSO_ADDRESS = 0x6A << 1;	// shift 7-bit I2C address into 8-bit container
+static const uint8_t CTRL1_XL		 = 0x10;		// control register 1
+static const uint8_t CTRL2_G         = 0x11;		// control register 2
+static const uint8_t OUTX_L_A        = 0x28;		// accel X-axis output
+uint8_t i2c_buffer[SIZE_I2C_BUFFER];				// storage for data from I2C
+uint8_t uart_tx_buffer[SIZE_UART_TX_BUFFER];		// storeage for UART tx data
+float acceleration[3];								// converted results from accel
+uint8_t i2c_sample_complete = 0;					// flag to be set in DMA interrupt callback
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,7 +73,39 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void LED_POT()
+{
 
+	if(acceleration[0] >= 50)
+	{
+		// if accel >= 50  LED1 on
+		GPIOB->ODR |= GPIO_PIN_10;
+
+		if(acceleration[0] >= 100)
+		{
+			// if accel >= 100  LED2 on
+			GPIOB->ODR |= GPIO_PIN_4;
+
+			if(acceleration[0] >= 150)
+			{
+				// if accel >= 150  LED3 on
+				GPIOB->ODR |= GPIO_PIN_5;
+
+				if(acceleration[0] >= 200)
+				{
+					// if accel >= 200  LED4 on
+					GPIOA->ODR |= GPIO_PIN_10;
+				}
+			}
+		}
+	}
+	HAL_Delay(2); // delay to allow LED to show
+	// all LED off at end of execution
+	GPIOA->ODR &= ~GPIO_PIN_10;
+	GPIOB->ODR &= ~GPIO_PIN_5;
+	GPIOB->ODR &= ~GPIO_PIN_4;
+	GPIOB->ODR &= ~GPIO_PIN_10;
+}
 /* USER CODE END 0 */
 
 /**
@@ -138,13 +171,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  while(i2c_sample_complete == 0){};
-	  i2c_sample_complete = 0;
-	  convert_accelerations(i2c_buffer);
+	while(i2c_sample_complete == 0){};
+	i2c_sample_complete = 0;
+	convert_accelerations(i2c_buffer);
 
-	  sprintf(uart_tx_buffer, "X:%4.2f, Y:$4.2f, Z:$4.2f \n", acceleration[0], acceleration[1], acceleration[2]);
+	sprintf(uart_tx_buffer, "X:%4.2f, Y:%4.2f, Z:%4.2f \n", acceleration[0], acceleration[1], acceleration[2]);
 
-	  HAL_UART_Transmit(&huart2, (uint8_t*)uart_tx_buffer, strlen((const char*)uart_tx_buffer), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart2, (uint8_t*)uart_tx_buffer, strlen((const char*)uart_tx_buffer), HAL_MAX_DELAY);
+
+	LED_POT();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -345,7 +380,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_10, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10|GPIO_PIN_4|GPIO_PIN_5, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -353,12 +391,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin PA10 */
+  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_10;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB10 PB4 PB5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_4|GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

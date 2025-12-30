@@ -53,7 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void convert_accelertions(uint8_t* i2c_buffer_pointer);
+void convert_accelerations(uint8_t* i2c_buffer_pointer);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
