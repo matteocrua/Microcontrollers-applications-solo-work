@@ -175,7 +175,7 @@ int main(void)
 	i2c_sample_complete = 0;
 	convert_accelerations(i2c_buffer);
 
-	sprintf(uart_tx_buffer, "X:%4.2f, Y:%4.2f, Z:%4.2f \n", acceleration[0], acceleration[1], acceleration[2]);
+	sprintf((char*)uart_tx_buffer, "X:%4.2f, Y:%4.2f, Z:%4.2f \n", acceleration[0], acceleration[1], acceleration[2]);
 
 	HAL_UART_Transmit(&huart2, (uint8_t*)uart_tx_buffer, strlen((const char*)uart_tx_buffer), HAL_MAX_DELAY);
 
