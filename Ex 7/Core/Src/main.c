@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -327,6 +327,32 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+// task 1
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	static uint16_t counter = 0;
+	static float freq = 2.0f;
+
+	if(htim == &htim6)
+	{
+		// set the duty period for timer2, channel 3 (LED1 on shield)
+		TIM2->CCR3 = pwm_duty_LED1;
+
+		float time = counter * 0.02f;				// period of 50Hz = frequency of 0.02
+		float phase = time * 2.0f * M_PI * freq;	// calculate phase(0 ~ 2pi) and scale by the frequency
+		float temp = (sinf(phase) + 1.0f) / 2.0f;	// ensure always positive (0 ~ 2), then re-scale (0 ~ 1)
+
+		pwm_duty_LED1 = (uint16_t)(temp * 1024.0f);	// cast float into unsigned int 16 type, then scale to PWM
+
+		counter++;
+	}
+}
+
+
+
+/*
+// led pulse setup exercise
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	static uint8_t updown_count_flag = 1;	// local static variable up or down counting flag
@@ -352,6 +378,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 	}
 }
+*/
+
 /* USER CODE END 4 */
 
 /**
