@@ -339,7 +339,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		// set the duty period for timer2, channel 3 (LED1 on shield)
 		TIM2->CCR3 = pwm_duty_LED1;
 
-		float time = counter * 0.02f;				// period of 50Hz = frequency of 0.02
+		float time = counter * 0.02f;				// frequency of 50Hz = period of 0.02s
 		float phase = time * 2.0f * M_PI * freq;	// calculate phase(0 ~ 2pi) and scale by the frequency
 		float temp = (sinf(phase) + 1.0f) / 2.0f;	// ensure always positive (0 ~ 2), then re-scale (0 ~ 1)
 
