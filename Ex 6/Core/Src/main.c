@@ -32,7 +32,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SIZE_I2C_BUFFER 6
+#define SIZE_I2C_BUFFER 14
 #define SIZE_UART_TX_BUFFER 100
 /* USER CODE END PD */
 
@@ -54,9 +54,12 @@ static const uint8_t LSM6DSO_ADDRESS = 0x6A << 1;	// shift 7-bit I2C address int
 static const uint8_t CTRL1_XL		 = 0x10;		// control register 1
 static const uint8_t CTRL2_G         = 0x11;		// control register 2
 static const uint8_t OUTX_L_A        = 0x28;		// accel X-axis output
+static const uint8_t OUT_TEMP_L		 = 0x20;		//
 uint8_t i2c_buffer[SIZE_I2C_BUFFER];				// storage for data from I2C
 uint8_t uart_tx_buffer[SIZE_UART_TX_BUFFER];		// storeage for UART tx data
 float acceleration[3];								// converted results from accel
+float temperature;									// calculated temperature value
+float angular_vel[3];								// calculated angular velocity value
 uint8_t i2c_sample_complete = 0;					// flag to be set in DMA interrupt callback
 /* USER CODE END PV */
 
@@ -143,7 +146,10 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   // Set accelerometer sample rate to 1.667 KHz and sensitivity to +/-2g
+  // Set gyroscope sample rate to 1.667 KHz and sensitivity to +/- 250dps
   i2c_buffer[0] = 0b10000000;
+
+  // accelerometer
   if(HAL_I2C_Mem_Write(&hi2c1, LSM6DSO_ADDRESS, CTRL1_XL, 1, i2c_buffer, 1, HAL_MAX_DELAY) != HAL_OK)
   {
 	  strcpy((char*)uart_tx_buffer, "Error Tx \n"); // report error via UART
@@ -154,7 +160,7 @@ int main(void)
   HAL_UART_Transmit(&huart2, (uint8_t*)uart_tx_buffer, strlen((const char*)uart_tx_buffer), HAL_MAX_DELAY);
 
 
-  // Set gyroscope sample rate at 1.667 KHz and sensitivity to +/-250dps
+  // gyroscope
   if(HAL_I2C_Mem_Write(&hi2c1, LSM6DSO_ADDRESS, CTRL2_G, 1, i2c_buffer, 1, HAL_MAX_DELAY) != HAL_OK)
   {
 	  strcpy((char*)uart_tx_buffer, "Error Tx \n"); // report error via UART
@@ -415,7 +421,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if(htim == &htim2)
 	{
 		// Sample IMU (read 6 bytes starting from OUTX_L_A)
-		HAL_I2C_Mem_Read_DMA(&hi2c1, LSM6DSO_ADDRESS, OUTX_L_A, I2C_MEMADD_SIZE_8BIT, i2c_buffer, SIZE_I2C_BUFFER);
+		HAL_I2C_Mem_Read_DMA(&hi2c1, LSM6DSO_ADDRESS, OUT_TEMP_L, I2C_MEMADD_SIZE_8BIT, i2c_buffer, SIZE_I2C_BUFFER);
 	}
 }
 
