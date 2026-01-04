@@ -553,15 +553,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	if(htim == &htim6)
 	{
+		HAL_ADC_Start(&hadc1);								// start adc conversion
+		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);	// wait for conversion to finish
+		adc_buffer[0] = HAL_ADC_GetValue(&hadc1);			// read converted value
+		HAL_ADC_Stop(&hadc1);								// stop adc conversion
 
-		HAL_ADC_Start(&hadc1);
-		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-		adc_buffer[0] = HAL_ADC_GetValue(&hadc1);
-		HAL_ADC_Stop(&hadc1);
-
-		v_pot = (3.3f/4095.0f)*(float)adc_buffer[0];
-
-		pwm_duty_LED2 = (uint16_t)((v_pot / 3.3f) * 1024.0f);
+		// convert ADC value to PWM duty cycle
+		// by doing a bit shift to the right by 2
+		// 0-4095 -> 0-1023
+		pwm_duty_LED2 = adc_buffer[0] >> 2;
 
 		// TIM 	   2, 3, 3, 1
 		// channel 3, 1, 2, 3
