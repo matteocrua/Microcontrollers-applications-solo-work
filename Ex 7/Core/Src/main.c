@@ -40,6 +40,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -49,8 +51,13 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint16_t pwm_duty_LED1;
+uint16_t pwm_duty_LED2;
 uint16_t pwm_duty_LED3;
 uint16_t pwm_duty_LED4;
+
+uint16_t adc_buffer[1];
+float v_pot;
+uint8_t adc_conversion_complete_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,6 +68,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -104,10 +112,12 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);	// start timer2 PWM channel 3
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);	// start timer1 PWM channel 3
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);	// start timer3 PWM channel 2
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);	// start timer2 PWM channel 3 (LED1)
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);	// start timer2 PWM channel 3 (LED2)
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);	// start timer1 PWM channel 3 (LED3)
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);	// start timer3 PWM channel 2 (LED4)
 
   HAL_TIM_Base_Start_IT(&htim6);				// start timer6 to generate interrupt
   /* USER CODE END 2 */
@@ -119,6 +129,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	if(adc_conversion_complete_flag == 1)
+	{
+	  adc_conversion_complete_flag = 0;
+	  v_pot = (3.3/4095)*(float)adc_buffer[1];
+	}
   }
   /* USER CODE END 3 */
 }
@@ -168,6 +183,58 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -352,6 +419,10 @@ static void MX_TIM3_Init(void)
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
@@ -487,10 +558,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	if(htim == &htim6)
 	{
-		// TIM 	   2, 3, 1
-		// channel 3, 2, 3
-		// LED     1, 3, 4
+
+		HAL_ADC_Start(&hadc1);
+		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+		adc_buffer[0] = HAL_ADC_GetValue(&hadc1);
+		HAL_ADC_Stop(&hadc1);
+
+		v_pot = (3.3f/4095.0f)*(float)adc_buffer[0];
+
+		pwm_duty_LED2 = (uint16_t)((v_pot / 3.3f) * 1024.0f);
+
+		// TIM 	   2, 3, 3, 1
+		// channel 3, 1, 2, 3
+		// LED     1, 2, 3, 4
 		TIM2->CCR3 = pwm_duty_LED1;
+		TIM3->CCR1 = pwm_duty_LED2;
 		TIM3->CCR2 = pwm_duty_LED3;
 		TIM1->CCR3 = pwm_duty_LED4;
 
