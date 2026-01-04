@@ -57,7 +57,6 @@ uint16_t pwm_duty_LED4;
 
 uint16_t adc_buffer[1];
 float v_pot;
-uint8_t adc_conversion_complete_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -129,11 +128,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	if(adc_conversion_complete_flag == 1)
-	{
-	  adc_conversion_complete_flag = 0;
-	  v_pot = (3.3/4095)*(float)adc_buffer[1];
-	}
+
   }
   /* USER CODE END 3 */
 }
