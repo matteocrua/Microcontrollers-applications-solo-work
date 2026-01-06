@@ -323,7 +323,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim6)
 	{
-		position = htim3.Instance->CNT; // copy CNT into global variable
+		// position = CNT + (rollover_counter * ARR + 1)
+		position = htim3.Instance->CNT +(rollover_counter * (htim3.Instance->ARR + 1));
+
+		//position = htim3.Instance->CNT; // copy CNT into global variable
 	}
 
 	if(htim == &htim3)
