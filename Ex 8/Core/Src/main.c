@@ -47,7 +47,8 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 int32_t position;
-int16_t rollover_counter;
+int32_t rollover_counter;
+int32_t velocity;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -323,8 +324,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim == &htim6)
 	{
+		// static variable to maintain previous position
+		static int32_t prev_pos = 0;
+
 		// position = CNT + (rollover_counter * ARR + 1)
 		position = htim3.Instance->CNT +(rollover_counter * (htim3.Instance->ARR + 1));
+
+		// velocity = (change in position) / time period
+		velocity = (position - prev_pos) / 0.02;	// 20ms = 0.02s
+
+		// update previous position for next calc
+		prev_pos = position;
 
 		//position = htim3.Instance->CNT; // copy CNT into global variable
 	}
