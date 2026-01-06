@@ -328,7 +328,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	if(htim == &htim3)
 	{
-		__NOP();		// do nothing
+		// if the CNT value is less than half the ARR then
+		// interrupt was caused by an over-flow
+		if(htim3.Instance->CNT < (htim3.Instance->ARR /2))
+		{
+			rollover_counter++;	// increment rollover counter
+		}
+		// if the CNT value is more than half the ARR then
+		// interrupt was caused by and under-flow
+		else
+		{
+			rollover_counter--; // decrement rollover counter
+		}
 	}
 }
 /* USER CODE END 4 */
